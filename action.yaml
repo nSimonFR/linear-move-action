@@ -1,13 +1,20 @@
-name: "Hello World"
-description: "Greet someone and record the time"
+name: "linear-move-action"
+description: Moves a linear list of issues from one state to another.
+
 inputs:
-  who-to-greet: # id of input
-    description: "Who to greet"
+  apiKey:
+    description: Linear API Key
     required: true
-    default: "World"
-outputs:
-  time: # id of output
-    description: "The time we greeted you"
+  list:
+    description: Linear list of attachement url or linear issues ids
+    required: true
+  from:
+    description: Linear from state (If empty, will use any state)
+    required: false
+  to:
+    description: Linear to state
+    required: true
+
 runs:
   using: "node16"
   main: "index.js"
