@@ -1,0 +1,23 @@
+{
+  "name": "linear-move-action",
+  "version": "0.0.1",
+  "description": "",
+  "author": "nSimonFR",
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nSimonFR/linear-move-action.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nSimonFR/linear-move-action/issues"
+  },
+  "homepage": "https://github.com/nSimonFR/linear-move-action#readme",
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1"
+  }
+}
