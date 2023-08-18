@@ -1,7 +1,7 @@
 const core = require("@actions/core");
 const { LinearClient } = require("@linear/sdk");
 
-const getWorkflowStatesQuery = () => `
+const getWorkflowStatesQuery = `
 query WorkflowStates($filter: WorkflowStateFilter) {
   workflowStates(filter: $filter) {
     nodes {
@@ -15,21 +15,37 @@ query WorkflowStates($filter: WorkflowStateFilter) {
   }
 }`;
 
-const getIssuesQuery = (issueQuery) => `
-query Issue($attachmentFilter: AttachmentFilter, $issuesFilter: IssueFilter) {
+const getIssuesQuery = `
+query Issue($attachmentFilter: AttachmentFilter) {
   attachments(filter: $attachmentFilter) {
-    nodes { issue { ${issueQuery} } }
+    nodes {
+      issue {
+        id
+        url
+        state {
+          id
+        }
+        team {
+          id
+        }
+      }
+    }
   }
 }`;
 
 const findState = (states, name) =>
   states.filter((s) => s.name.toLowerCase() === name.toLowerCase());
 
-const moveIssue = (linearClient) => async (issue, froms, tos) => {
-  const from = froms.find((f) => issue.state.id === f.id);
-  if (!from) return null;
+const moveIssue = (linearClient) => async (issue, fromStates, toStates) => {
+  if (fromStates) {
+    const from = fromStates.find((f) => issue.state.id === f.id);
 
-  const to = tos.find((t) => t.team.id === from.team.id);
+    // If from is given but is not the state, ignore
+    if (!from) return null;
+  }
+  // Else, always move issue
+
+  const to = toStates.find((t) => t.team.id === issue.team.id);
   await linearClient.issueUpdate(issue.id, {
     stateId: to.id,
   });
@@ -39,7 +55,7 @@ const moveIssue = (linearClient) => async (issue, froms, tos) => {
 
 const issuesMove = (linearClient) => async (list, from, to) => {
   const statesResponse = await linearClient.client.rawRequest(
-    getWorkflowStatesQuery(),
+    getWorkflowStatesQuery,
     {
       filter: {
         name: {
@@ -51,21 +67,18 @@ const issuesMove = (linearClient) => async (list, from, to) => {
   const states = statesResponse.data.workflowStates.nodes;
 
   const statesOrdered = states.sort((a, b) => a.position - b.position);
-  const froms = findState(statesOrdered, from);
-  const tos = findState(statesOrdered, to);
+  const fromNamedStates = findState(statesOrdered, from);
+  const toNamedStates = findState(statesOrdered, to);
 
-  const issueQuery = `id url state { id }`;
-
-  const issuesResponse = await linearClient.client.rawRequest(
-    getIssuesQuery(issueQuery),
-    {
-      attachmentFilter: { url: { in: list } },
-    }
-  );
-  const issues = issuesResponse.data.issues.nodes;
+  const issuesResponse = await linearClient.client.rawRequest(getIssuesQuery, {
+    attachmentFilter: { url: { in: list } },
+  });
+  const issues = issuesResponse.data.attachments.nodes;
 
   const responses = await Promise.all(
-    issues.map(moveIssue(linearClient)(froms, tos))
+    issues.map((issue) =>
+      moveIssue(linearClient)(issue, fromNamedStates, toNamedStates)
+    )
   );
 
   // TODO Action output
@@ -75,9 +88,9 @@ const issuesMove = (linearClient) => async (list, from, to) => {
 
 const action = async () => {
   const apiKey = core.getInput("apiKey");
-  const list = core.getInput("list");
+  const list = core.getInput("list").split(/\s+/);
   const from = core.getInput("from");
-  const to = core.getInput("to");
+  const to = core.getInput("to") || null;
 
   const linearClient = new LinearClient({
     apiKey,
@@ -86,4 +99,4 @@ const action = async () => {
   await issuesMove(linearClient)(list, from, to);
 };
 
-action.catch((e) => core.setFailed(error.message));
+action().catch((error) => core.setFailed(error.message));
