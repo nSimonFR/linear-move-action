@@ -15,8 +15,5 @@ jobs:
           attachments: https://example.com
           dry: true
 
-      - if: ${{ steps.linear-move.outputs.links }} == 'https://example.com'
-        run: exit 0
-
-      - if: ${{ steps.linear-move.outputs.links }} != 'https://example.com'
+      - if: steps.linear-move.outputs.links != 'https://linear.app/trusk/issue/PLA-32/test-linear-automation'
         run: exit 1
