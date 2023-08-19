@@ -5,15 +5,23 @@ inputs:
   apiKey:
     description: Linear API Key
     required: true
-  list:
-    description: Linear list of attachement url or linear issues ids
-    required: true
+  attachments:
+    description: Linear list of attachement url
+    required: false
   from:
     description: Linear from state (If empty, will use any state)
     required: false
   to:
     description: Linear to state
     required: true
+  dry:
+    description: Do not apply move
+    required: false
+    default: "false"
+
+outputs:
+  links:
+    description: List of moved issues
 
 runs:
   using: "node16"
