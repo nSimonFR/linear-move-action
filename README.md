@@ -1,25 +1,17 @@
 # Linear Move
 
-Moves a linear list of issues from one state to another.
-Takes a list of Github PRs as linear attachment to look for (Automatically using Github X Linear integration).
-If no `from`, issues will be moved to `to`.
+Moves a [linear.app](https://linear.app) list of issues `from` one state `to` another.
+
+If no `from`, issues will be moved to `to` regardless of their previous states.
+
+For example, takes a list of Github PRs as linear `attachments` _(Allowing extension of the [Github X Linear integration](https://linear.app/docs/github))_.
+
+See my other linear projects over here => https://github.com/nSimonFR/linear-tools
 
 ## Inputs & Outputs
 
-See [action.yaml](action.yaml).
+See [action.yaml](action.yaml) for action parameters.
 
 ## Example usage
 
-```yaml
-- name: List recent PR links url
-  shell: bash
-  run: |
-    URLS="$(gh pr list --state merged --json url -q '.[].url')"
-    echo 'MERGED_PRS_URLS='$URLS >> $GITHUB_ENV
-
-- uses: nSimonFR/linear-move-action@0.0.1
-  with:
-    apiKey: ${{ secrets.LINEAR_API_KEY }}
-    to: 'In Production'
-    list: ${{ env.MERGED_PRS_URLS }}
-```
+See the [examples folder](./example) & [test.yaml](./.github/workflows/test.yaml) !

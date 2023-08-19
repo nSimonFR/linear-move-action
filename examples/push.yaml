@@ -1,0 +1,29 @@
+name: test
+
+on:
+  push:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Git Code
+        uses: actions/checkout@v3
+
+      - name: List recent PR links URLs => MERGED_PRS_URLS
+        run: |
+          URLS="$(gh pr list --state merged --json url -q '.[].url')"
+          echo 'MERGED_PRS_URLS='$URLS >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: nSimonFR/linear-move-action@main
+        with:
+          apiKey: ${{ secrets.LINEAR_API_KEY }}
+          from: "In Review"
+          to: "In Production"
+          attachments: ${{ env.MERGED_PRS_URLS }}

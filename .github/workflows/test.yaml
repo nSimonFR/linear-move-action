@@ -1,0 +1,22 @@
+name: test
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - id: linear-move
+        uses: nSimonFR/linear-move-action@main
+        with:
+          apiKey: ${{ secrets.LINEAR_API_KEY }}
+          to: "In Progress"
+          attachments: https://example.com
+          dry: true
+
+      - if: ${{ steps.linear-move.outputs.links }} == 'https://example.com'
+        run: exit 0
+
+      - if: ${{ steps.linear-move.outputs.links }} != 'https://example.com'
+        run: exit 1
