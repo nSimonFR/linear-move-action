@@ -35,8 +35,10 @@ query Issue($filter: AttachmentFilter) {
   }
 }`;
 
-const findState = (states, name) =>
-  states.filter((s) => s.name.toLowerCase() === name.toLowerCase());
+const findStates = (states, name) => {
+  const names = name.split(",").map((n) => n.trim().toLowerCase());
+  return states.filter((s) => names.includes(s.name.toLowerCase()));
+};
 
 const moveIssue =
   (linearClient) => async (issue, fromStates, toStates, dry) => {
@@ -86,7 +88,8 @@ const getIssueFromAttachments = (linearClient) => async (list) => {
 const issuesMove = (linearClient) => async (issues, from, to, dry) => {
   const or = [from, to]
     .filter((s) => s)
-    .map((s) => ({ name: { eqIgnoreCase: s } }));
+    .flatMap((s) => s.split(","))
+    .map((s) => ({ name: { eqIgnoreCase: s.trim() } }));
 
   const statesResponse = await linearClient.client.rawRequest(
     getWorkflowStatesQuery,
@@ -97,13 +100,15 @@ const issuesMove = (linearClient) => async (issues, from, to, dry) => {
     }
   );
   const states = statesResponse.data.workflowStates.nodes;
-  console.debug(`${from} - ${to}:${states.map((s) => s.name).join(", ")}`);
+  console.debug(`"${from}" => "${to}": ${states.length} states total`);
 
   const statesOrdered = states.sort((a, b) => a.position - b.position);
-  const fromNamedStates = from ? findState(statesOrdered, from) : null;
-  const toNamedStates = findState(statesOrdered, to);
+  const fromNamedStates = from ? findStates(statesOrdered, from) : null;
+  const toNamedStates = findStates(statesOrdered, to);
   console.debug(
-    `Found ${fromNamedStates?.length} "${from}" states => ${toNamedStates.length} "${to}" states.`
+    `Found ${fromNamedStates?.length || null} "${from}" states => ${
+      toNamedStates.length
+    } "${to}" states.`
   );
 
   const responses = await Promise.all(

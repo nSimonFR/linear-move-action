@@ -11,7 +11,7 @@ jobs:
         uses: nSimonFR/linear-move-action@main
         with:
           apiKey: ${{ secrets.LINEAR_API_KEY }}
-          to: "In Progress"
+          to: "In Progress, Review"
           attachments: https://example.com
           dry: true
 

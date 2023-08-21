@@ -9,10 +9,10 @@ inputs:
     description: Linear list of attachement url
     required: false
   from:
-    description: Linear from state (If empty, will use any state)
+    description: Linear from state (If empty, will use any state) (Use `,` to separate mutliple states - any matching state will be used)
     required: false
   to:
-    description: Linear to state
+    description: Linear to state (Use `,` to separate mutliple states - closest state will be used)
     required: true
   dry:
     description: Do not apply move
