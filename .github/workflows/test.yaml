@@ -10,7 +10,7 @@ jobs:
       - id: linear-move
         uses: nSimonFR/linear-move-action@main
         with:
-          apiKey: ${{ secrets.LINEAR_API_KEY }}
+          accessToken: ${{ secrets.LINEAR_ACCESS_TOKEN }}
           to: "In Progress, Review"
           attachments: https://example.com
           dry: true

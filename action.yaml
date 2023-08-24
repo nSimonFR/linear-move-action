@@ -6,7 +6,9 @@ inputs:
     description: Linear API Key (Required if accessToken is not provided)
     required: false
   accessToken:
-    description: Linear Access Token (Required if apiKey is not provided)
+    description: |
+      Linear Access Token (Required if apiKey is not provided)
+      Advised if you want to use a custom name for the bot, see https://developers.linear.app/docs/oauth/oauth-actor-authorization.
     required: false
   attachments:
     description: Linear list of attachement url
