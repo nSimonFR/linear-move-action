@@ -15,3 +15,7 @@ See [action.yaml](action.yaml) for action parameters.
 ## Example usage
 
 See the [examples folder](./example) & [test.yaml](./.github/workflows/test.yaml) !
+
+## TODO
+
+- Auto message in PR when non-dry !
