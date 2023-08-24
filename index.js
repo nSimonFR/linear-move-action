@@ -128,14 +128,21 @@ const issuesMove = (linearClient) => async (issues, from, to, dry) => {
 
 const action = async () => {
   const apiKey = core.getInput("apiKey");
+  const accessToken = core.getInput("accessToken");
+
+  if (!apiKey && !accessToken) {
+    throw new Error('Either "apiKey" or "accessToken" must be set.');
+  }
+
+  const linearClient = new LinearClient({
+    apiKey,
+    accessToken,
+  });
+
   const attachments = core.getInput("attachments").split(/\s+/);
   const from = core.getInput("from") || null;
   const to = core.getInput("to");
   const dry = core.getInput("dry") !== "false";
-
-  const linearClient = new LinearClient({
-    apiKey,
-  });
 
   const issues = await getIssueFromAttachments(linearClient)(attachments);
 

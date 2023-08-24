@@ -3,8 +3,11 @@ description: Moves a linear list of issues from one state to another.
 
 inputs:
   apiKey:
-    description: Linear API Key
-    required: true
+    description: Linear API Key (Required if accessToken is not provided)
+    required: false
+  accessToken:
+    description: Linear Access Token (Required if apiKey is not provided)
+    required: false
   attachments:
     description: Linear list of attachement url
     required: false
