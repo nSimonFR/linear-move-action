@@ -7,7 +7,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - id: linear-move
+      - id: first-test
         uses: nSimonFR/linear-move-action@main
         with:
           accessToken: ${{ secrets.LINEAR_ACCESS_TOKEN }}
@@ -15,5 +15,17 @@ jobs:
           attachments: https://example.com
           dry: true
 
-      - if: contains(steps.linear-move.outputs.links, 'PLA-32') == false
+      - if: contains(steps.first-test.outputs.links, 'PLA-32') == false
+        run: exit 1
+
+      - id: second-test
+        uses: nSimonFR/linear-move-action@main
+        with:
+          accessToken: ${{ secrets.LINEAR_ACCESS_TOKEN }}
+          to: "In Progress, Review"
+          terms: "TEST LINEAR AUTOMATION"
+          separator: ","
+          dry: true
+
+      - if: contains(steps.second-test.outputs.links, 'PLA-32') == false
         run: exit 1

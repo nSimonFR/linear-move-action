@@ -15,22 +15,35 @@ query WorkflowStates($filter: WorkflowStateFilter) {
   }
 }`;
 
-const getIssuesQuery = `
+const getIssuesSubQuery = `
+id
+identifier
+url
+state {
+  id
+  name
+}
+team {
+  id
+}
+`;
+
+const getIssuesFromAttachmentQuery = `
 query Issue($filter: AttachmentFilter) {
   attachments(filter: $filter) {
     nodes {
       issue {
-        id
-        identifier
-        url
-        state {
-          id
-          name
-        }
-        team {
-          id
-        }
+        ${getIssuesSubQuery}
       }
+    }
+  }
+}`;
+
+const searchIssuesQuery = `
+query Issue($term: String!) {
+  searchIssues(term: $term) {
+    nodes {
+      ${getIssuesSubQuery}
     }
   }
 }`;
@@ -71,13 +84,33 @@ const moveIssue =
   };
 
 const getIssueFromAttachments = (linearClient) => async (list) => {
-  const issuesResponse = await linearClient.client.rawRequest(getIssuesQuery, {
-    filter: { url: { in: list } },
-  });
+  const issuesResponse = await linearClient.client.rawRequest(
+    getIssuesFromAttachmentQuery,
+    {
+      filter: { url: { in: list } },
+    }
+  );
   const issues = issuesResponse.data.attachments.nodes.map((n) => n.issue);
 
   console.debug(
     `Found ${issues.length} issues for attachments:\n${issues
+      .map((i) => i.identifier)
+      .join("\n")}\n`
+  );
+
+  return issues;
+};
+
+const getIssueFromTerms = (linearClient) => async (list) => {
+  const issuesResponse = await Promise.all(
+    list.map((term) =>
+      linearClient.client.rawRequest(searchIssuesQuery, { term })
+    )
+  );
+  const issues = issuesResponse.map((r) => r.data.searchIssues.nodes).flat();
+
+  console.debug(
+    `Found ${issues.length} issues for terms:\n${issues
       .map((i) => i.identifier)
       .join("\n")}\n`
   );
@@ -139,15 +172,27 @@ const action = async () => {
     accessToken,
   });
 
-  const attachments = core.getInput("attachments").split(/\s+/);
   const from = core.getInput("from") || null;
   const to = core.getInput("to");
   const dry = core.getInput("dry") !== "false";
+  const separator = core.getInput("separator");
+  const separatorRegex = new RegExp(separator);
 
-  const issues = await getIssueFromAttachments(linearClient)(attachments);
+  const attachmentsInput = core.getInput("attachments");
+  const termsInput = core.getInput("terms");
+
+  let issues = [];
+  if (attachmentsInput) {
+    const attachments = attachmentsInput.split(separatorRegex);
+    issues = await getIssueFromAttachments(linearClient)(attachments);
+  } else if (termsInput) {
+    const terms = termsInput.split(separatorRegex);
+    issues = await getIssueFromTerms(linearClient)(terms);
+  } else {
+    throw new Error('Either "attachments" or "terms" must be set.');
+  }
 
   const links = await issuesMove(linearClient)(issues, from, to, dry);
-
   console.log(`output.links: ${links}`);
   core.setOutput("links", links);
 };

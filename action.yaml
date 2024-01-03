@@ -11,8 +11,15 @@ inputs:
       Advised if you want to use a custom name for the bot, see https://developers.linear.app/docs/oauth/oauth-actor-authorization.
     required: false
   attachments:
-    description: Linear list of attachement url
+    description: Linear list of attachement url (Separate with `separator`)
     required: false
+  terms:
+    description: Linear list of issue terms for search (Separate with `separator`)
+    required: false
+  separator:
+    description: "Separator for attachments/terms as RegExp (Default: `\\s+`)"
+    required: false
+    default: "\\s+"
   from:
     description: Linear from state (If empty, will use any state) (Use `,` to separate mutliple states - any matching state will be used)
     required: false
