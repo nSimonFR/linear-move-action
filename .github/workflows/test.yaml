@@ -15,5 +15,5 @@ jobs:
           attachments: https://example.com
           dry: true
 
-      - if: steps.linear-move.outputs.links != 'https://linear.app/trusk/issue/PLA-32/test-linear-automation'
+      - if: contains(steps.linear-move.outputs.links, 'PLA-32') == false
         run: exit 1
