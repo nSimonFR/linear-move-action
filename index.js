@@ -70,6 +70,13 @@ const moveIssue =
 
     const to = toStates.find((t) => t.team.id === issue.team.id);
 
+    if (!to) {
+      console.debug(
+        `Not moving ${issue.identifier} - cannot find state to move to".`
+      );
+      return issue;
+    }
+
     console.debug(
       `${dry ? "[DRY]" : ""} moving issue ${issue.url} to ${to.name}.`
     );
