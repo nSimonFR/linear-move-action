@@ -136,7 +136,7 @@ const getIssuesFromTerms = (linearClient) => async (list) => {
 
 const getIssuesFromUrls = (linearClient) => async (list) => {
   const getTeamAndNumber = (url) => {
-    const issueId = url.split("/")?.[6];
+    const issueId = url.split("/")?.[5];
     const [team, number] = issueId.split("-");
     return { team, number };
   };
@@ -144,14 +144,17 @@ const getIssuesFromUrls = (linearClient) => async (list) => {
   const issuesResponse = await Promise.all(
     list.map((url) => {
       const { team, number } = getTeamAndNumber(url);
-      const filter = { team: { key: { eq: team } }, number: { eq: number } };
+      const filter = {
+        team: { key: { eq: team } },
+        number: { eq: Number(number) },
+      };
       return linearClient.client.rawRequest(getIssuesQuery, { filter });
     }),
   );
-  const issues = issuesResponse.map((r) => r.data.issues.nodes);
+  const issues = issuesResponse.map((r) => r.data.issues.nodes).flat();
 
   console.debug(
-    `Found ${issues.length} issues for terms:\n${issues
+    `Found ${issues.length} issues for urls:\n${issues
       .map((i) => i.identifier)
       .join("\n")}\n`,
   );
@@ -232,7 +235,7 @@ const action = async () => {
     issues = await getIssuesFromTerms(linearClient)(terms);
   } else if (urlsInput) {
     const urls = urlsInput.split(separatorRegex);
-    issues = await getIssuesFromUrls(linearClient)(urls, getTeamAndNumber);
+    issues = await getIssuesFromUrls(linearClient)(urls);
   } else {
     throw new Error('Either "attachments", "terms", or "urls" must be set.');
   }
