@@ -61,7 +61,7 @@ const moveIssue =
       // If from is given but is not the state wanted, ignore
       if (!from) {
         console.debug(
-          `Not moving ${issue.identifier} as state is "${issue.state.name}".`
+          `Not moving ${issue.identifier} as state is "${issue.state.name}".`,
         );
         return null;
       }
@@ -72,13 +72,13 @@ const moveIssue =
 
     if (!to) {
       console.debug(
-        `Not moving ${issue.identifier} - cannot find state to move to".`
+        `Not moving ${issue.identifier} - cannot find state to move to".`,
       );
       return issue;
     }
 
     console.debug(
-      `${dry ? "[DRY]" : ""} moving issue ${issue.url} to ${to.name}.`
+      `${dry ? "[DRY]" : ""} moving issue ${issue.url} to ${to.name}.`,
     );
 
     if (!dry) {
@@ -90,36 +90,36 @@ const moveIssue =
     return issue;
   };
 
-const getIssueFromAttachments = (linearClient) => async (list) => {
+const getIssuesFromAttachments = (linearClient) => async (list) => {
   const issuesResponse = await linearClient.client.rawRequest(
     getIssuesFromAttachmentQuery,
     {
       filter: { url: { in: list } },
-    }
+    },
   );
   const issues = issuesResponse.data.attachments.nodes.map((n) => n.issue);
 
   console.debug(
     `Found ${issues.length} issues for attachments:\n${issues
       .map((i) => i.identifier)
-      .join("\n")}\n`
+      .join("\n")}\n`,
   );
 
   return issues;
 };
 
-const getIssueFromTerms = (linearClient) => async (list) => {
+const getIssuesFromTerms = (linearClient) => async (list) => {
   const issuesResponse = await Promise.all(
     list.map((term) =>
-      linearClient.client.rawRequest(searchIssuesQuery, { term })
-    )
+      linearClient.client.rawRequest(searchIssuesQuery, { term }),
+    ),
   );
   const issues = issuesResponse.map((r) => r.data.searchIssues.nodes).flat();
 
   console.debug(
     `Found ${issues.length} issues for terms:\n${issues
       .map((i) => i.identifier)
-      .join("\n")}\n`
+      .join("\n")}\n`,
   );
 
   return issues;
@@ -137,7 +137,7 @@ const issuesMove = (linearClient) => async (issues, from, to, dry) => {
       filter: {
         or,
       },
-    }
+    },
   );
   const states = statesResponse.data.workflowStates.nodes;
   console.debug(`"${from}" => "${to}": ${states.length} states total`);
@@ -148,20 +148,20 @@ const issuesMove = (linearClient) => async (issues, from, to, dry) => {
   console.debug(
     `Found ${fromNamedStates?.length || null} "${from}" states => ${
       toNamedStates.length
-    } "${to}" states.`
+    } "${to}" states.`,
   );
 
   const responses = await Promise.all(
     issues.map((issue) =>
-      moveIssue(linearClient)(issue, fromNamedStates, toNamedStates, dry)
-    )
+      moveIssue(linearClient)(issue, fromNamedStates, toNamedStates, dry),
+    ),
   );
 
   const updatedIssues = responses.filter((i) => i);
   console.info(
     `Updated ${updatedIssues.length} issues:\n${updatedIssues
       .map((i) => i.identifier)
-      .join("\n")}`
+      .join("\n")}`,
   );
   return updatedIssues.map((i) => i.url).join("\n");
 };
@@ -187,16 +187,20 @@ const action = async () => {
 
   const attachmentsInput = core.getInput("attachments");
   const termsInput = core.getInput("terms");
+  const urlsInput = core.getInput("urls");
 
   let issues = [];
   if (attachmentsInput) {
     const attachments = attachmentsInput.split(separatorRegex);
-    issues = await getIssueFromAttachments(linearClient)(attachments);
+    issues = await getIssuesFromAttachments(linearClient)(attachments);
   } else if (termsInput) {
     const terms = termsInput.split(separatorRegex);
-    issues = await getIssueFromTerms(linearClient)(terms);
+    issues = await getIssuesFromTerms(linearClient)(terms);
+  } else if (urlsInput) {
+    // const urls = urlsInput.split(separatorRegex);
+    // issues = await getIssuesFromUrls(linearClient)(urls, getTeamAndNumber);
   } else {
-    throw new Error('Either "attachments" or "terms" must be set.');
+    throw new Error('Either "attachments", "terms", or "urls" must be set.');
   }
 
   const links = await issuesMove(linearClient)(issues, from, to, dry);

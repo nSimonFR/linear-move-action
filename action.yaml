@@ -16,6 +16,9 @@ inputs:
   terms:
     description: Linear list of issue terms for search (Separate with `separator`)
     required: false
+  urls:
+    description: Linear list of issue urls for search (Separate with `separator`)
+    required: false
   separator:
     description: "Separator for attachments/terms as RegExp (Default: `\\s+`)"
     required: false
