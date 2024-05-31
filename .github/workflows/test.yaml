@@ -7,7 +7,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - id: first-test
+      - id: attachments-test
         uses: nSimonFR/linear-move-action@main
         with:
           accessToken: ${{ secrets.LINEAR_ACCESS_TOKEN }}
@@ -15,17 +15,29 @@ jobs:
           attachments: https://example.com
           dry: true
 
-      - if: contains(steps.first-test.outputs.links, 'PLA-32') == false
+      - if: contains(steps.attachments-test.outputs.links, 'PLA-32') == false
         run: exit 1
 
-      - id: second-test
+      - id: terms-test
         uses: nSimonFR/linear-move-action@main
         with:
           accessToken: ${{ secrets.LINEAR_ACCESS_TOKEN }}
           to: "In Progress, Review"
-          terms: "TEST LINEAR AUTOMATION"
+          terms: "TEST LINEAR AUTOMATION,anotherterm"
           separator: ","
           dry: true
 
-      - if: contains(steps.second-test.outputs.links, 'PLA-32') == false
+      - if: contains(steps.terms-test.outputs.links, 'PLA-32') == false
+        run: exit 1
+
+      - id: urls-test
+        uses: nSimonFR/linear-move-action@main
+        with:
+          accessToken: ${{ secrets.LINEAR_ACCESS_TOKEN }}
+          to: "In Progress, Review"
+          urls: "https://linear.app/trusk/issue/PLA-32"
+          separator: ","
+          dry: true
+
+      - if: contains(steps.urls-test.outputs.links, 'PLA-32') == false
         run: exit 1
