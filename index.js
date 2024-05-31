@@ -48,6 +48,15 @@ query Issue($term: String!) {
   }
 }`;
 
+const getIssuesQuery = `
+query Issue($filter: IssueFilter) {
+  issues(filter: $filter) {
+    nodes {
+      ${getIssuesSubQuery}
+    }
+  }
+}`;
+
 const findStates = (states, name) => {
   const names = name.split(",").map((n) => n.trim().toLowerCase());
   return states.filter((s) => names.includes(s.name.toLowerCase()));
@@ -115,6 +124,31 @@ const getIssuesFromTerms = (linearClient) => async (list) => {
     ),
   );
   const issues = issuesResponse.map((r) => r.data.searchIssues.nodes).flat();
+
+  console.debug(
+    `Found ${issues.length} issues for terms:\n${issues
+      .map((i) => i.identifier)
+      .join("\n")}\n`,
+  );
+
+  return issues;
+};
+
+const getIssuesFromUrls = (linearClient) => async (list) => {
+  const getTeamAndNumber = (url) => {
+    const issueId = url.split("/")?.[6];
+    const [team, number] = issueId.split("-");
+    return { team, number };
+  };
+
+  const issuesResponse = await Promise.all(
+    list.map((url) => {
+      const { team, number } = getTeamAndNumber(url);
+      const filter = { team: { key: { eq: team } }, number: { eq: number } };
+      return linearClient.client.rawRequest(getIssuesQuery, { filter });
+    }),
+  );
+  const issues = issuesResponse.map((r) => r.data.issues.nodes);
 
   console.debug(
     `Found ${issues.length} issues for terms:\n${issues
@@ -197,8 +231,8 @@ const action = async () => {
     const terms = termsInput.split(separatorRegex);
     issues = await getIssuesFromTerms(linearClient)(terms);
   } else if (urlsInput) {
-    // const urls = urlsInput.split(separatorRegex);
-    // issues = await getIssuesFromUrls(linearClient)(urls, getTeamAndNumber);
+    const urls = urlsInput.split(separatorRegex);
+    issues = await getIssuesFromUrls(linearClient)(urls, getTeamAndNumber);
   } else {
     throw new Error('Either "attachments", "terms", or "urls" must be set.');
   }
