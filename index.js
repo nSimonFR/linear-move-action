@@ -1,6 +1,11 @@
 const core = require("@actions/core");
 const { LinearClient } = require("@linear/sdk");
 
+core.warning(
+  "linear-move-action is DEPRECATED and no longer maintained. " +
+    "Please migrate to linear-release: https://github.com/marketplace/actions/linear-release"
+);
+
 const getWorkflowStatesQuery = `
 query WorkflowStates($filter: WorkflowStateFilter) {
   workflowStates(filter: $filter) {

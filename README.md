@@ -1,5 +1,13 @@
 # Linear Move
 
+> [!WARNING]
+> **This action is deprecated and no longer maintained.**
+>
+> Please use [**Linear Release**](https://github.com/marketplace/actions/linear-release) instead:
+> https://github.com/marketplace/actions/linear-release
+
+---
+
 Moves a [linear.app](https://linear.app) list of issues `from` one state `to` another.
 
 If no `from`, issues will be moved to `to` regardless of their previous states.

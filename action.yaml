@@ -1,5 +1,5 @@
 name: "linear-move-action"
-description: Moves a linear list of issues from one state to another.
+description: "[DEPRECATED] Use https://github.com/marketplace/actions/linear-release instead. Moves a linear list of issues from one state to another."
 
 inputs:
   apiKey:
